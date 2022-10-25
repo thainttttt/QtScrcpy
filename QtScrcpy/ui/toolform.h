@@ -21,6 +21,7 @@ public:
     explicit ToolForm(QWidget *adsorbWidget, AdsorbPositions adsorbPos);
     ~ToolForm();
 
+    void updateGroupState();
     void setSerial(const QString& serial);
     bool isHost();
 

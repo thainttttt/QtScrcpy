@@ -126,6 +126,10 @@ set(QC_UI_SOURCES
     ui/dialog.cpp
     ui/dialog.h
     ui/dialog.ui
+    ui/form.cpp
+    ui/form.h
+    ui/form.ui
+    ui/ccombobox.h
     render/qyuvopenglwidget.h
     render/qyuvopenglwidget.cpp
 )

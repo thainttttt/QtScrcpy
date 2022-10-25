@@ -11,6 +11,8 @@
 #include "videoform.h"
 #include "../groupcontroller/groupcontroller.h"
 
+#include "ccombobox.h"
+
 QString s_keyMapPath = "";
 
 const QString &getKeyMapPath()
@@ -29,6 +31,39 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
     initUI();
+    defaultGroup = "UnGroup";
+    ui->formRowEdit->setValidator(new QIntValidator(1, 10, this));
+    setWindowFlags(Qt::WindowStaysOnTopHint);
+
+    // setup tabwidget
+    QWidget *pTabCornerWidget = new QWidget(this);
+	QPushButton *pButton = new QPushButton(pTabCornerWidget);
+	pButton->setText("+");
+	pButton->setMaximumSize(QSize(25, 25));
+	QHBoxLayout *pHLayout = new QHBoxLayout(pTabCornerWidget);
+	pHLayout->addWidget(pButton);
+	ui->groupTabPhone->setCornerWidget(pTabCornerWidget, Qt::TopRightCorner);
+    ui->groupTabPhone->setTabsClosable(true);
+    addNewTab(defaultGroup);
+    //tick checkbox defaultGroup
+    auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(0, QTabBar::LeftSide);
+    box->setChecked(true);
+    enabledGroup.push_back(defaultGroup);
+
+    QPushButton *refreshBtn = new QPushButton(this);
+	refreshBtn->setText("Refresh");
+    ui->verticalLayout_4->addWidget(refreshBtn);
+
+    // signal
+    connect(ui->groupTabPhone, &QTabWidget::tabCloseRequested, this, &Dialog::closeCurrentTab);
+    connect(pButton, &QPushButton::released, this, &Dialog::onAddButtonClick);
+    connect(refreshBtn, &QPushButton::released, this, &Dialog::onRefreshBtnClick);
+
+    // Show Form
+    form = new Form();
+    form->show();
+    form->showMaximized();
+    form->setWindowTitle("test");
 
     updateBootConfig(true);
 
@@ -37,7 +72,7 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
     connect(&m_autoUpdatetimer, &QTimer::timeout, this, &Dialog::on_updateDevice_clicked);
     if (ui->autoUpdatecheckBox->isChecked()) {
-        m_autoUpdatetimer.start(5000);
+        m_autoUpdatetimer.start(2000);
     }
 
     connect(&m_adb, &qsc::AdbProcess::adbProcessResult, this, [this](qsc::AdbProcess::ADB_EXEC_RESULT processResult) {
@@ -66,11 +101,32 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
             if (args.contains("devices")) {
                 QStringList devices = m_adb.getDevicesSerialFromStdOut();
                 ui->serialBox->clear();
-                ui->connectedPhoneList->clear();
+                // ui->connectedPhoneList->clear();
                 for (auto &item : devices) {
                     ui->serialBox->addItem(item);
-                    ui->connectedPhoneList->addItem(Config::getInstance().getNickName(item) + "-" + item);
+
+                    auto it = std::find(serials.begin(), serials.end(), item);
+                    if (it == serials.end()) {
+                        serials.push_back(item);
+                        QListWidget* connectedPhoneList = (QListWidget*) ui->groupTabPhone->widget(0);
+                        QListWidgetItem* bItemWidget = new QListWidgetItem();
+                        QWidget* itemWidget = newTabItem(item, defaultGroup);
+                        bItemWidget->setSizeHint(itemWidget->sizeHint());
+                        connectedPhoneList->addItem(bItemWidget);
+                        connectedPhoneList->setItemWidget(bItemWidget, itemWidget);
+                    }
                 }
+                assert((int) serials.size()==devices.count());  //must same len
+                if (((int) form->videoForms.size() != processIdx)) {
+                    on_startServerBtn_clicked();
+                    qInfo() << "=========" << serials[processIdx-1];
+                } else if (form->videoForms.size() < serials.size()) {
+                    qInfo() << "=========" << serials[processIdx];
+                    ui->serialBox->setCurrentText(serials[processIdx]);
+                    on_startServerBtn_clicked();
+                    processIdx++;
+                }
+
             } else if (args.contains("show") && args.contains("wlan0")) {
                 QString ip = m_adb.getDeviceIPFromStdOut();
                 if (ip.isEmpty()) {
@@ -430,6 +486,7 @@ void Dialog::getIPbyIp()
 void Dialog::onDeviceConnected(bool success, const QString &serial, const QString &deviceName, const QSize &size)
 {
     Q_UNUSED(deviceName);
+    Q_UNUSED(size);
     if (!success) {
         return;
     }
@@ -446,25 +503,31 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     }
 
     // must be show before updateShowSize
-    videoForm->show();
-    QString name = Config::getInstance().getNickName(serial);
-    if (name.isEmpty()) {
-        name = Config::getInstance().getTitle();
-    }
-    videoForm->setWindowTitle(name + "-" + serial);
-    videoForm->updateShowSize(size);
+    // videoForm->show();
+    // QString name = Config::getInstance().getNickName(serial);
+    // if (name.isEmpty()) {
+    //     name = Config::getInstance().getTitle();
+    // }
+    // videoForm->setWindowTitle(name + "-" + serial);
+    // videoForm->updateShowSize(size);
+    // videoForm->updateShowSize(QSize(25, 50));
+    // videoForm->resize(50, 100);
 
-    bool deviceVer = size.height() > size.width();
-    QRect rc = Config::getInstance().getRect(serial);
-    bool rcVer = rc.height() > rc.width();
-    // same width/height rate
-    if (rc.isValid() && (deviceVer == rcVer)) {
-        // mark: resize is for fix setGeometry magneticwidget bug
-        videoForm->resize(rc.size());
-        videoForm->setGeometry(rc);
-    }
+    // bool deviceVer = size.height() > size.width();
+    // QRect rc = Config::getInstance().getRect(serial);
+    // bool rcVer = rc.height() > rc.width();
+    // // same width/height rate
+    // if (rc.isValid() && (deviceVer == rcVer)) {
+    //     // mark: resize is for fix setGeometry magneticwidget bug
+    //     videoForm->resize(rc.size());
+    //     videoForm->setGeometry(rc);
+    // }
 
     GroupController::instance().addDevice(serial);
+
+    form->videoForms[serial.toStdString()] = videoForm;
+    auto it = std::find(enabledGroup.begin(), enabledGroup.end(), defaultGroup);
+    if (it != enabledGroup.end()) form->addForm(videoForm);
 }
 
 void Dialog::onDeviceDisconnected(QString serial)
@@ -639,11 +702,33 @@ void Dialog::on_wifiConnectBtn_clicked()
     on_startServerBtn_clicked();
 }
 
-void Dialog::on_connectedPhoneList_itemDoubleClicked(QListWidgetItem *item)
+void Dialog::on_itemDoubleClicked(QListWidgetItem *item)
 {
     Q_UNUSED(item);
-    ui->serialBox->setCurrentIndex(ui->connectedPhoneList->currentRow());
-    on_startServerBtn_clicked();
+
+    auto listWidget = (QListWidget*) ui->groupTabPhone->currentWidget();
+    QString serial = ((QLabel*) listWidget->itemWidget(item)->layout()->itemAt(0)->widget())->text();
+
+    // if tabwidget not in enabledGroup, return
+    auto it = std::find(enabledGroup.begin(), enabledGroup.end(), ui->groupTabPhone->tabText(ui->groupTabPhone->currentIndex()));
+    if (it == enabledGroup.end()) return;
+
+    form->unsetMainForm();
+    if (!mainSerial.isEmpty()) {
+        auto oldMainForm = form->videoForms[mainSerial.toStdString()];
+        oldMainForm->updateGroupState();
+        form->addForm(oldMainForm);
+
+        if (mainSerial == serial) {
+            mainSerial.clear();
+            return;
+        }
+    }
+    auto mainForm = form->videoForms[serial.toStdString()];
+    form->setMainForm(mainForm);
+    mainForm->updateGroupState();
+
+    mainSerial = serial;
 }
 
 void Dialog::on_updateNameBtn_clicked()
@@ -729,4 +814,126 @@ void Dialog::on_autoUpdatecheckBox_toggled(bool checked)
     } else {
         m_autoUpdatetimer.stop();
     }
+}
+
+void Dialog::addNewTab(QString &label) {
+	QListWidget* listWidget = new QListWidget;
+
+	ui->groupTabPhone->addTab(listWidget, label);
+	ui->groupTabPhone->tabBar()->setTabButton(ui->groupTabPhone->tabBar()->count()-1, QTabBar::LeftSide, new QCheckBox());
+
+    connect(listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(on_itemDoubleClicked(QListWidgetItem*)));
+}
+
+void Dialog::closeCurrentTab(int index)
+{
+	if (index == 0)
+		return;
+
+    auto listWidget = (QListWidget*) ui->groupTabPhone->widget(index);
+    auto targetListWidget = (QListWidget*) ui->groupTabPhone->widget(0);
+    while (listWidget->count()>0) {
+        QListWidgetItem* item = listWidget->item(0);
+        QWidget* itemWidget = listWidget->itemWidget(item);
+        QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
+
+        QListWidgetItem* moveItem = new QListWidgetItem();
+        QWidget* moveWidget = newTabItem(targetLabel, defaultGroup);
+        moveItem->setSizeHint(moveWidget->sizeHint());
+        targetListWidget->addItem(moveItem);
+        targetListWidget->setItemWidget(moveItem, moveWidget);
+
+        item = listWidget->takeItem(0);
+        delete item;
+    }
+
+	ui->groupTabPhone->removeTab(index);
+}
+
+void Dialog::onAddButtonClick()
+{
+	static int subTabId=0;
+	auto label = QString::fromUtf8("Group %1").arg(subTabId);
+	subTabId++;
+	addNewTab(label);
+}
+
+void Dialog::onRefreshBtnClick() {
+    /*
+    b0: update form row
+    b1: move
+    b2: update tick group
+    b3: refresh form
+    */
+    form->setRow(ui->formRowEdit->text().trimmed().toUInt());
+
+    enabledGroup.clear();
+    for (int i=0; i<ui->groupTabPhone->count(); i++) {
+        auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
+        QString tabGroup = ui->groupTabPhone->tabText(i);
+        for (int j=0; j<listWidget->count();) {
+            QListWidgetItem* item = listWidget->item(j);
+            QWidget* itemWidget = listWidget->itemWidget(item);
+            QString targetGroup = ((CComboBox*) itemWidget->layout()->itemAt(1)->widget())->currentText();
+            QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
+
+            // if label is diff, move it
+            if (targetGroup != tabGroup) {
+                for (int k=0; k<ui->groupTabPhone->count(); k++) {
+                    if (ui->groupTabPhone->tabText(k) == targetGroup) {
+                        auto targetListWidget = (QListWidget*) ui->groupTabPhone->widget(k);
+                        QListWidgetItem* moveItem = new QListWidgetItem();
+                        QWidget* moveWidget = newTabItem(targetLabel, targetGroup);
+                        moveItem->setSizeHint(moveWidget->sizeHint());
+                        targetListWidget->addItem(moveItem);
+                        targetListWidget->setItemWidget(moveItem, moveWidget);
+
+                        item = listWidget->takeItem(j);
+                        delete item;
+                        j--;
+                        break;
+                    }
+                }
+            }
+            j++;
+        }
+        auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(i, QTabBar::LeftSide);
+        if (box->isChecked()) enabledGroup.push_back(ui->groupTabPhone->tabText(i));
+    }
+
+    // refresh form
+    form->unsetMainForm();
+    form->resetForm();
+    if (!mainSerial.isEmpty()) {
+        auto oldMainForm = form->videoForms[mainSerial.toStdString()];
+        oldMainForm->updateGroupState();
+        oldMainForm->hide();
+        mainSerial.clear();
+    }
+    for (int i=0; i<ui->groupTabPhone->count(); i++) {
+        auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
+        auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(i, QTabBar::LeftSide);
+        if (!box->isChecked()) continue;
+
+        for (int j=0; j<listWidget->count(); j++) {
+            QWidget* itemWidget = listWidget->itemWidget(listWidget->item(j));
+            QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
+            form->addForm(form->videoForms[targetLabel.toStdString()]);
+        }
+    }
+
+}
+
+QWidget* Dialog::newTabItem(QString &label, QString &group) {
+    QHBoxLayout *itemlayout = new QHBoxLayout();
+    QWidget *itemWidget = new QWidget();
+    itemlayout->addWidget(new QLabel(label));
+    auto itemListGroup = new CComboBox(ui->groupTabPhone);
+    itemListGroup->addItem(group);
+    itemlayout->addWidget(itemListGroup);
+    itemlayout->setStretch(0, 1);
+    itemlayout->setContentsMargins(0,0,0,0);
+    itemWidget->setLayout(itemlayout);
+    
+    return itemWidget;
 }

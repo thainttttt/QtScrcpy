@@ -25,6 +25,11 @@ ToolForm::~ToolForm()
     delete ui;
 }
 
+void ToolForm::updateGroupState()
+{
+    on_groupControlBtn_clicked();
+}
+
 void ToolForm::setSerial(const QString &serial)
 {
     m_serial = serial;

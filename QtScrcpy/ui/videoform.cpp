@@ -20,6 +20,7 @@
 #include "mousetap/mousetap.h"
 #include "ui_videoform.h"
 #include "videoform.h"
+#include "dialog.h"
 
 VideoForm::VideoForm(bool framelessWindow, bool skin, QWidget *parent) : QWidget(parent), ui(new Ui::videoForm), m_skin(skin)
 {
@@ -159,6 +160,8 @@ void VideoForm::updateRender(int width, int height, uint8_t* dataY, uint8_t* dat
 void VideoForm::setSerial(const QString &serial)
 {
     m_serial = serial;
+
+    ui->label->setText(serial);
 }
 
 void VideoForm::showToolForm(bool show)
@@ -169,6 +172,7 @@ void VideoForm::showToolForm(bool show)
     }
     m_toolForm->move(pos().x() + geometry().width(), pos().y() + 30);
     m_toolForm->setVisible(show);
+    m_toolForm->hide();
 }
 
 void VideoForm::moveCenter()
@@ -453,7 +457,7 @@ void VideoForm::updateShowSize(const QSize &newSize)
             if (m_skin) {
                 updateStyleSheet(vertical);
             }
-            moveCenter();
+//            moveCenter();
         }
     }
 }
@@ -511,6 +515,11 @@ bool VideoForm::isHost()
     return m_toolForm->isHost();
 }
 
+void VideoForm::updateGroupState()
+{
+    return m_toolForm->updateGroupState();
+}
+
 void VideoForm::updateFPS(quint32 fps)
 {
     //qDebug() << "FPS:" << fps;
@@ -548,6 +557,8 @@ void VideoForm::staysOnTop(bool top)
 
 void VideoForm::mousePressEvent(QMouseEvent *event)
 {
+    ((Form*) parentWidget())->setCurrentForm(m_serial);
+
     auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
     if (event->button() == Qt::MiddleButton) {
         if (device && !device->isCurrentCustomKeymap()) {

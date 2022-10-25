@@ -9,7 +9,7 @@
 #include <QListWidget>
 #include <QTimer>
 
-
+#include "form.h"
 #include "adbprocess.h"
 #include "../QtScrcpyCore/include/QtScrcpyCore.h"
 #include "audio/audiooutput.h"
@@ -54,7 +54,7 @@ private slots:
     void on_recordScreenCheck_clicked(bool checked);
     void on_usbConnectBtn_clicked();
     void on_wifiConnectBtn_clicked();
-    void on_connectedPhoneList_itemDoubleClicked(QListWidgetItem *item);
+    void on_itemDoubleClicked(QListWidgetItem *item);
     void on_updateNameBtn_clicked();
     void on_useSingleModeCheck_clicked();
     void on_serialBox_currentIndexChanged(const QString &arg1);
@@ -66,6 +66,10 @@ private slots:
     void on_installSndcpyBtn_clicked();
 
     void on_autoUpdatecheckBox_toggled(bool checked);
+
+    void closeCurrentTab(int index);
+    void onAddButtonClick();
+    void onRefreshBtnClick();
 
 private:
     bool checkAdbRun();
@@ -79,6 +83,9 @@ private:
     quint32 getBitRate();
     const QString &getServerPath();
 
+    void addNewTab(QString &label);
+    QWidget* newTabItem(QString &label, QString &group);
+
 protected:
     void closeEvent(QCloseEvent *event);
 
@@ -91,6 +98,13 @@ private:
     QAction *m_quit;
     AudioOutput m_audioOutput;
     QTimer m_autoUpdatetimer;
+
+    Form *form;
+    std::vector<QString> serials;
+    QString mainSerial;
+    int processIdx=0;
+    QString defaultGroup;
+    std::vector<QString> enabledGroup;
 };
 
 #endif // DIALOG_H

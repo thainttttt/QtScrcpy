@@ -34,6 +34,7 @@ public:
     void switchFullScreen();
 
     bool isHost();
+    void updateGroupState();
 
 private:
     void onFrame(int width, int height, uint8_t* dataY, uint8_t* dataU, uint8_t* dataV,
