@@ -84,7 +84,7 @@ private:
     const QString &getServerPath();
 
     void addNewTab(QString &label);
-    QWidget* newTabItem(QString &label, QString &group);
+    QWidget* newTabItem(QString label, QString &group);
     void onTabBarDoubleClicked(int index);
 
 protected:
@@ -101,8 +101,6 @@ private:
     QTimer m_autoUpdatetimer;
 
     Form *form;
-    std::vector<QString> serials;
-    int processIdx=0;
     QString defaultGroup;
     std::vector<QString> enabledGroup;
 };

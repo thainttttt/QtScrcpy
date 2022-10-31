@@ -67,7 +67,7 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     form = new Form(ui->formRowEdit->text().trimmed().toUInt());
     form->show();
     form->showMaximized();
-    form->setWindowTitle("test");
+    form->setWindowTitle("ClickFarm.vn - Group Remote Control");
 
     on_useSingleModeCheck_clicked();
     on_updateDevice_clicked();
@@ -107,26 +107,11 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
                 for (auto &item : devices) {
                     ui->serialBox->addItem(item);
 
-                    auto it = std::find(serials.begin(), serials.end(), item);
-                    if (it == serials.end()) {
-                        serials.push_back(item);
-                        QListWidget* connectedPhoneList = (QListWidget*) ui->groupTabPhone->widget(0);
-                        QListWidgetItem* bItemWidget = new QListWidgetItem();
-                        QWidget* itemWidget = newTabItem(item, defaultGroup);
-                        bItemWidget->setSizeHint(itemWidget->sizeHint());
-                        connectedPhoneList->addItem(bItemWidget);
-                        connectedPhoneList->setItemWidget(bItemWidget, itemWidget);
+                    if(form->videoForms.find(item.toStdString()) == form->videoForms.end()) {
+                        ui->serialBox->setCurrentText(item);
+                        on_startServerBtn_clicked();
+                        break;
                     }
-                }
-                assert((int) serials.size()==devices.count());  //must same len
-                if (((int) form->videoForms.size() != processIdx)) {
-                    on_startServerBtn_clicked();
-                    qInfo() << "=========" << serials[processIdx-1];
-                } else if (form->videoForms.size() < serials.size()) {
-                    qInfo() << "=========" << serials[processIdx];
-                    ui->serialBox->setCurrentText(serials[processIdx]);
-                    on_startServerBtn_clicked();
-                    processIdx++;
                 }
 
             } else if (args.contains("show") && args.contains("wlan0")) {
@@ -193,7 +178,7 @@ void Dialog::initUI()
     setAttribute(Qt::WA_DeleteOnClose);
     //setWindowFlags(windowFlags() | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
 
-    setWindowTitle(Config::getInstance().getTitle());
+    setWindowTitle("ClickFarm.vn");
 
     ui->bitRateEdit->setValidator(new QIntValidator(1, 99999, this));
 
@@ -530,6 +515,13 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     GroupController::instance().addDevice(serial);
 
     form->videoForms[serial.toStdString()] = videoForm;
+    // add item to connectedPhoneList
+    QListWidget* connectedPhoneList = (QListWidget*) ui->groupTabPhone->widget(0);
+    QListWidgetItem* bItemWidget = new QListWidgetItem();
+    QWidget* itemWidget = newTabItem(serial, defaultGroup);
+    bItemWidget->setSizeHint(itemWidget->sizeHint());
+    connectedPhoneList->addItem(bItemWidget);
+    connectedPhoneList->setItemWidget(bItemWidget, itemWidget);
 
     // if default group is enabled, show in form
     auto it = std::find(enabledGroup.begin(), enabledGroup.end(), defaultGroup);
@@ -550,6 +542,9 @@ void Dialog::onDeviceDisconnected(QString serial)
         vf->close();
         vf->deleteLater();
     }
+
+    form->videoForms.erase(serial.toStdString());
+    onRefreshBtnClick();
 }
 
 void Dialog::on_wirelessDisConnectBtn_clicked()
@@ -925,14 +920,17 @@ void Dialog::onRefreshBtnClick() {
             QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
 
             // if form is unavailable, cannot add it
-            if(form->videoForms.find(targetLabel.toStdString())==form->videoForms.end()) continue;
-            form->addForm(form->videoForms[targetLabel.toStdString()]);
+            if(form->videoForms.find(targetLabel.toStdString())==form->videoForms.end()) {
+                auto item = listWidget->takeItem(j);
+                delete item;
+                j--;
+            } else form->addForm(form->videoForms[targetLabel.toStdString()]);
         }
     }
 
 }
 
-QWidget* Dialog::newTabItem(QString &label, QString &group) {
+QWidget* Dialog::newTabItem(QString label, QString &group) {
     QHBoxLayout *itemlayout = new QHBoxLayout();
     QWidget *itemWidget = new QWidget();
     itemlayout->addWidget(new QLabel(label));

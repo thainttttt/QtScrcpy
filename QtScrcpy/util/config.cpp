@@ -9,7 +9,7 @@
 
 // config
 #define COMMON_TITLE_KEY "WindowTitle"
-#define COMMON_TITLE_DEF "title"
+#define COMMON_TITLE_DEF "ClickFarm.vn"
 
 #define COMMON_PUSHFILE_KEY "PushFilePath"
 #define COMMON_PUSHFILE_DEF "/sdcard/"
