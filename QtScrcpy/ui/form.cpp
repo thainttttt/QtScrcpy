@@ -83,7 +83,8 @@ void Form::resetForm() {
     unsetMainForm();
     if (!mainSerial.isEmpty()) {
         auto oldMainForm = videoForms[mainSerial.toStdString()];
-        oldMainForm->updateGroupState();
+        if (oldMainForm->isHost())
+            oldMainForm->updateGroupState();
         oldMainForm->hide();
         mainSerial.clear();
     }
@@ -112,17 +113,18 @@ void Form::keyReleaseEvent(QKeyEvent *event) {
     QApplication::sendEvent(videoForms[currentForm.toStdString()], event);
 }
 
-void Form::updateMainForm(QString& serial) {
+bool Form::updateMainForm(QString& serial) {
     unsetMainForm();
 
     if (!mainSerial.isEmpty()) {
         auto oldMainForm = videoForms[mainSerial.toStdString()];
-        oldMainForm->updateGroupState();
+        if (oldMainForm->isHost())
+            oldMainForm->updateGroupState();
         addForm(oldMainForm);
 
         if (mainSerial == serial) {
             mainSerial.clear();
-            return;
+            return false;
         }
     }
     auto mainForm = videoForms[serial.toStdString()];
@@ -130,6 +132,8 @@ void Form::updateMainForm(QString& serial) {
     mainForm->updateGroupState();
 
     mainSerial = serial;
+
+    return true;
 }
 
 void Form::installShortcut() {

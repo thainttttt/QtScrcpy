@@ -172,7 +172,6 @@ void VideoForm::showToolForm(bool show)
     }
     m_toolForm->move(pos().x() + geometry().width(), pos().y() + 30);
     m_toolForm->setVisible(show);
-    m_toolForm->hide();
 }
 
 void VideoForm::moveCenter()
@@ -664,11 +663,12 @@ void VideoForm::mouseDoubleClickEvent(QMouseEvent *event)
         emit device->mouseEvent(event, m_videoWidget->frameSize(), m_videoWidget->size());
     }
 
-    // qInfo() << "DoubleClickkkkkkkkkkkkkk";
+    //set main when double click to label
     qreal y = event->localPos().y() / m_videoWidget->size().height();
     if (y < 0) {
         Form* form = qobject_cast<Form*>(parentWidget());
-        form->updateMainForm(m_serial);
+        if (form->updateMainForm(m_serial)) showToolForm(true);
+        else showToolForm(false);
     }
 }
 
@@ -733,7 +733,7 @@ void VideoForm::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event)
     if (!isFullScreen()) {
-        showToolForm();
+        showToolForm(false);
     }
 }
 
