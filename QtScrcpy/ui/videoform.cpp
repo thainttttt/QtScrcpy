@@ -26,7 +26,7 @@ VideoForm::VideoForm(bool framelessWindow, bool skin, QWidget *parent) : QWidget
 {
     ui->setupUi(this);
     initUI();
-    installShortcut();
+    // installShortcut();
     updateShowSize(size());
     bool vertical = size().height() > size().width();
     if (m_skin) {
@@ -557,7 +557,8 @@ void VideoForm::staysOnTop(bool top)
 
 void VideoForm::mousePressEvent(QMouseEvent *event)
 {
-    ((Form*) parentWidget())->setCurrentForm(m_serial);
+    Form* form = qobject_cast<Form*>(parentWidget());
+    form->setCurrentForm(m_serial);
 
     auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
     if (event->button() == Qt::MiddleButton) {
@@ -636,8 +637,8 @@ void VideoForm::mouseMoveEvent(QMouseEvent *event)
         emit device->mouseEvent(event, m_videoWidget->frameSize(), m_videoWidget->size());
     } else if (!m_dragPosition.isNull()) {
         if (event->buttons() & Qt::LeftButton) {
-            move(event->globalPos() - m_dragPosition);
-            event->accept();
+            // move(event->globalPos() - m_dragPosition);
+            // event->accept();
         }
     }
 }
@@ -661,6 +662,13 @@ void VideoForm::mouseDoubleClickEvent(QMouseEvent *event)
         }
         event->setLocalPos(m_videoWidget->mapFrom(this, event->localPos().toPoint()));
         emit device->mouseEvent(event, m_videoWidget->frameSize(), m_videoWidget->size());
+    }
+
+    // qInfo() << "DoubleClickkkkkkkkkkkkkk";
+    qreal y = event->localPos().y() / m_videoWidget->size().height();
+    if (y < 0) {
+        Form* form = qobject_cast<Form*>(parentWidget());
+        form->updateMainForm(m_serial);
     }
 }
 

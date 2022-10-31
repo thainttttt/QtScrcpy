@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 #include <QTime>
 #include <QTimer>
+#include <QDialogButtonBox>
 
 #include "config.h"
 #include "dialog.h"
@@ -54,18 +55,19 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 	refreshBtn->setText("Refresh");
     ui->verticalLayout_4->addWidget(refreshBtn);
 
+    updateBootConfig(true);
+
     // signal
+    connect(ui->groupTabPhone, &QTabWidget::tabBarDoubleClicked, this, &Dialog::onTabBarDoubleClicked);
     connect(ui->groupTabPhone, &QTabWidget::tabCloseRequested, this, &Dialog::closeCurrentTab);
     connect(pButton, &QPushButton::released, this, &Dialog::onAddButtonClick);
     connect(refreshBtn, &QPushButton::released, this, &Dialog::onRefreshBtnClick);
 
     // Show Form
-    form = new Form();
+    form = new Form(ui->formRowEdit->text().trimmed().toUInt());
     form->show();
     form->showMaximized();
     form->setWindowTitle("test");
-
-    updateBootConfig(true);
 
     on_useSingleModeCheck_clicked();
     on_updateDevice_clicked();
@@ -242,6 +244,7 @@ void Dialog::updateBootConfig(bool toView)
         ui->stayAwakeCheck->setChecked(config.keepAlive);
         ui->useSingleModeCheck->setChecked(config.simpleMode);
         ui->autoUpdatecheckBox->setChecked(config.autoUpdateDevice);
+        ui->formRowEdit->setText(config.formRow);
     } else {
         UserBootConfig config;
 
@@ -260,6 +263,7 @@ void Dialog::updateBootConfig(bool toView)
         config.keepAlive = ui->stayAwakeCheck->isChecked();
         config.simpleMode = ui->useSingleModeCheck->isChecked();
         config.autoUpdateDevice = ui->autoUpdatecheckBox->isChecked();
+        config.formRow = ui->formRowEdit->text();
         Config::getInstance().setUserBootConfig(config);
     }
 }
@@ -526,6 +530,8 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     GroupController::instance().addDevice(serial);
 
     form->videoForms[serial.toStdString()] = videoForm;
+
+    // if default group is enabled, show in form
     auto it = std::find(enabledGroup.begin(), enabledGroup.end(), defaultGroup);
     if (it != enabledGroup.end()) form->addForm(videoForm);
 }
@@ -702,34 +708,40 @@ void Dialog::on_wifiConnectBtn_clicked()
     on_startServerBtn_clicked();
 }
 
-void Dialog::on_itemDoubleClicked(QListWidgetItem *item)
-{
-    Q_UNUSED(item);
+// void Dialog::on_itemDoubleClicked(QListWidgetItem *item)
+// {
+//     Q_UNUSED(item);
 
-    auto listWidget = (QListWidget*) ui->groupTabPhone->currentWidget();
-    QString serial = ((QLabel*) listWidget->itemWidget(item)->layout()->itemAt(0)->widget())->text();
+//     auto listWidget = (QListWidget*) ui->groupTabPhone->currentWidget();
+//     QString serial = ((QLabel*) listWidget->itemWidget(item)->layout()->itemAt(0)->widget())->text();
 
-    // if tabwidget not in enabledGroup, return
-    auto it = std::find(enabledGroup.begin(), enabledGroup.end(), ui->groupTabPhone->tabText(ui->groupTabPhone->currentIndex()));
-    if (it == enabledGroup.end()) return;
+//     // if video form not found, return
+//     if(form->videoForms.find(serial.toStdString())==form->videoForms.end()) {
+//         qInfo() << "Serial=" << serial << " not found. Please try again later...";
+//         return;
+//     }
 
-    form->unsetMainForm();
-    if (!mainSerial.isEmpty()) {
-        auto oldMainForm = form->videoForms[mainSerial.toStdString()];
-        oldMainForm->updateGroupState();
-        form->addForm(oldMainForm);
+//     // if tabwidget not in enabledGroup, return
+//     auto it = std::find(enabledGroup.begin(), enabledGroup.end(), ui->groupTabPhone->tabText(ui->groupTabPhone->currentIndex()));
+//     if (it == enabledGroup.end()) return;
 
-        if (mainSerial == serial) {
-            mainSerial.clear();
-            return;
-        }
-    }
-    auto mainForm = form->videoForms[serial.toStdString()];
-    form->setMainForm(mainForm);
-    mainForm->updateGroupState();
+//     form->unsetMainForm();
+//     if (!mainSerial.isEmpty()) {
+//         auto oldMainForm = form->videoForms[mainSerial.toStdString()];
+//         oldMainForm->updateGroupState();
+//         form->addForm(oldMainForm);
 
-    mainSerial = serial;
-}
+//         if (mainSerial == serial) {
+//             mainSerial.clear();
+//             return;
+//         }
+//     }
+//     auto mainForm = form->videoForms[serial.toStdString()];
+//     form->setMainForm(mainForm);
+//     mainForm->updateGroupState();
+
+//     mainSerial = serial;
+// }
 
 void Dialog::on_updateNameBtn_clicked()
 {
@@ -902,14 +914,7 @@ void Dialog::onRefreshBtnClick() {
     }
 
     // refresh form
-    form->unsetMainForm();
     form->resetForm();
-    if (!mainSerial.isEmpty()) {
-        auto oldMainForm = form->videoForms[mainSerial.toStdString()];
-        oldMainForm->updateGroupState();
-        oldMainForm->hide();
-        mainSerial.clear();
-    }
     for (int i=0; i<ui->groupTabPhone->count(); i++) {
         auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
         auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(i, QTabBar::LeftSide);
@@ -918,6 +923,9 @@ void Dialog::onRefreshBtnClick() {
         for (int j=0; j<listWidget->count(); j++) {
             QWidget* itemWidget = listWidget->itemWidget(listWidget->item(j));
             QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
+
+            // if form is unavailable, cannot add it
+            if(form->videoForms.find(targetLabel.toStdString())==form->videoForms.end()) continue;
             form->addForm(form->videoForms[targetLabel.toStdString()]);
         }
     }
@@ -936,4 +944,23 @@ QWidget* Dialog::newTabItem(QString &label, QString &group) {
     itemWidget->setLayout(itemlayout);
     
     return itemWidget;
+}
+
+
+void Dialog::onTabBarDoubleClicked(int index) {
+    if (index==0) return;
+
+    QDialog dlg;
+    QVBoxLayout la(&dlg);
+    QLineEdit ed;
+    la.addWidget(&ed);
+    QDialogButtonBox bb(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    la.addWidget(&bb);
+    dlg.setLayout(&la);
+    connect(&bb, &QDialogButtonBox::accepted, [&]{
+      if (!ed.text().isEmpty()) ui->groupTabPhone->setTabText(index, ed.text());
+      dlg.accept();
+    });
+    connect(&bb, &QDialogButtonBox::rejected, [&]{ dlg.reject(); });
+    dlg.exec();
 }

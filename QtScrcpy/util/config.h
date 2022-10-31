@@ -22,6 +22,7 @@ struct UserBootConfig
     bool keepAlive        = false;
     bool simpleMode       = false;
     bool autoUpdateDevice = true;
+    QString formRow = "2";
 };
 
 class QSettings;

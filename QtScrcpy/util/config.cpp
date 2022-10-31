@@ -9,7 +9,7 @@
 
 // config
 #define COMMON_TITLE_KEY "WindowTitle"
-#define COMMON_TITLE_DEF QCoreApplication::applicationName()
+#define COMMON_TITLE_DEF "title"
 
 #define COMMON_PUSHFILE_KEY "PushFilePath"
 #define COMMON_PUSHFILE_DEF "/sdcard/"
@@ -99,6 +99,9 @@
 #define SERIAL_NICK_NAME_KEY "NickName"
 #define SERIAL_NICK_NAME_DEF "Phone"
 
+#define FORM_ROW_KEY "FormRow"
+#define FORM_ROW_DEF "2"
+
 QString Config::s_configPath = "";
 
 Config::Config(QObject *parent) : QObject(parent)
@@ -149,6 +152,7 @@ void Config::setUserBootConfig(const UserBootConfig &config)
     m_userData->setValue(COMMON_KEEP_ALIVE_KEY, config.keepAlive);
     m_userData->setValue(COMMON_SIMPLE_MODE_KEY, config.simpleMode);
     m_userData->setValue(COMMON_AUTO_UPDATE_DEVICE_KEY, config.autoUpdateDevice);
+    m_userData->setValue(FORM_ROW_KEY, config.formRow);
     m_userData->endGroup();
     m_userData->sync();
 }
@@ -172,6 +176,7 @@ UserBootConfig Config::getUserBootConfig()
     config.keepAlive = m_userData->value(COMMON_KEEP_ALIVE_KEY, COMMON_KEEP_ALIVE_DEF).toBool();
     config.simpleMode = m_userData->value(COMMON_SIMPLE_MODE_KEY, COMMON_SIMPLE_MODE_DEF).toBool();
     config.autoUpdateDevice = m_userData->value(COMMON_AUTO_UPDATE_DEVICE_KEY, COMMON_AUTO_UPDATE_DEVICE_DEF).toBool();
+    config.formRow = m_userData->value(FORM_ROW_KEY, FORM_ROW_DEF).toString();
     m_userData->endGroup();
     return config;
 }

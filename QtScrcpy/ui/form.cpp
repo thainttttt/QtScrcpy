@@ -1,14 +1,29 @@
 #include <QDebug>
+#include <QShortcut>
 
 #include "form.h"
 #include "ui_form.h"
 
-Form::Form(QWidget *parent) :
+Form::Form(int maxRow, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Form)
 {
+    _maxRow = maxRow;
     ui->setupUi(this);
     ui->horizontalLayout->setStretch(1, 1);
+    // installShortcut();
+
+    // setDeviceClipboard
+    auto shortcut = new QShortcut(QKeySequence("Ctrl+Shift+v"), this);
+    shortcut->setAutoRepeat(false);
+    connect(shortcut, &QShortcut::activated, this, [this]() {
+        if (currentForm.isEmpty()) return;
+        auto device = qsc::IDeviceManage::getInstance().getDevice(currentForm);
+        if (!device) {
+            return;
+        }
+        emit device->clipboardPaste();
+    });
 }
 
 Form::~Form()
@@ -64,6 +79,14 @@ void Form::resetForm() {
         child->widget()->hide();
         delete child;
     }
+
+    unsetMainForm();
+    if (!mainSerial.isEmpty()) {
+        auto oldMainForm = videoForms[mainSerial.toStdString()];
+        oldMainForm->updateGroupState();
+        oldMainForm->hide();
+        mainSerial.clear();
+    }
 }
 
 void Form::setRow(int row) {
@@ -87,4 +110,40 @@ void Form::keyReleaseEvent(QKeyEvent *event) {
     if (currentForm.isEmpty()) return;
 
     QApplication::sendEvent(videoForms[currentForm.toStdString()], event);
+}
+
+void Form::updateMainForm(QString& serial) {
+    unsetMainForm();
+
+    if (!mainSerial.isEmpty()) {
+        auto oldMainForm = videoForms[mainSerial.toStdString()];
+        oldMainForm->updateGroupState();
+        addForm(oldMainForm);
+
+        if (mainSerial == serial) {
+            mainSerial.clear();
+            return;
+        }
+    }
+    auto mainForm = videoForms[serial.toStdString()];
+    setMainForm(mainForm);
+    mainForm->updateGroupState();
+
+    mainSerial = serial;
+}
+
+void Form::installShortcut() {
+    QShortcut *shortcut = nullptr;
+
+    // setDeviceClipboard
+    shortcut = new QShortcut(QKeySequence("Ctrl+Shift+v"), this);
+    shortcut->setAutoRepeat(false);
+    connect(shortcut, &QShortcut::activated, this, [this]() {
+        qInfo() << "aaaaaaaaaaaaaaaa";
+        auto device = qsc::IDeviceManage::getInstance().getDevice(currentForm);
+        if (!device) {
+            return;
+        }
+        emit device->clipboardPaste();
+    });
 }

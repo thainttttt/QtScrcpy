@@ -54,7 +54,7 @@ private slots:
     void on_recordScreenCheck_clicked(bool checked);
     void on_usbConnectBtn_clicked();
     void on_wifiConnectBtn_clicked();
-    void on_itemDoubleClicked(QListWidgetItem *item);
+    // void on_itemDoubleClicked(QListWidgetItem *item);
     void on_updateNameBtn_clicked();
     void on_useSingleModeCheck_clicked();
     void on_serialBox_currentIndexChanged(const QString &arg1);
@@ -85,6 +85,7 @@ private:
 
     void addNewTab(QString &label);
     QWidget* newTabItem(QString &label, QString &group);
+    void onTabBarDoubleClicked(int index);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -101,7 +102,6 @@ private:
 
     Form *form;
     std::vector<QString> serials;
-    QString mainSerial;
     int processIdx=0;
     QString defaultGroup;
     std::vector<QString> enabledGroup;
