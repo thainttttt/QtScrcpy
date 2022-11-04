@@ -113,27 +113,27 @@ void Form::keyReleaseEvent(QKeyEvent *event) {
     QApplication::sendEvent(videoForms[currentForm.toStdString()], event);
 }
 
-bool Form::updateMainForm(QString& serial) {
+void Form::updateMainForm(QString& serial) {
     unsetMainForm();
 
     if (!mainSerial.isEmpty()) {
         auto oldMainForm = videoForms[mainSerial.toStdString()];
-        if (oldMainForm->isHost())
-            oldMainForm->updateGroupState();
+        if (oldMainForm->isHost()) oldMainForm->updateGroupState();
+        oldMainForm->showToolForm(false);
         addForm(oldMainForm);
 
         if (mainSerial == serial) {
             mainSerial.clear();
-            return false;
+            return;
         }
     }
     auto mainForm = videoForms[serial.toStdString()];
     setMainForm(mainForm);
     mainForm->updateGroupState();
+    mainForm->showToolForm(true);
 
     mainSerial = serial;
 
-    return true;
 }
 
 void Form::installShortcut() {
@@ -143,7 +143,6 @@ void Form::installShortcut() {
     shortcut = new QShortcut(QKeySequence("Ctrl+Shift+v"), this);
     shortcut->setAutoRepeat(false);
     connect(shortcut, &QShortcut::activated, this, [this]() {
-        qInfo() << "aaaaaaaaaaaaaaaa";
         auto device = qsc::IDeviceManage::getInstance().getDevice(currentForm);
         if (!device) {
             return;

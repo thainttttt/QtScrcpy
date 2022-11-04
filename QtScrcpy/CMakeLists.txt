@@ -129,6 +129,9 @@ set(QC_UI_SOURCES
     ui/form.cpp
     ui/form.h
     ui/form.ui
+    ui/logindialog.cpp
+    ui/logindialog.h
+    ui/logindialog.ui
     ui/ccombobox.h
     render/qyuvopenglwidget.h
     render/qyuvopenglwidget.cpp

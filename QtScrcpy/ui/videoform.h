@@ -35,6 +35,7 @@ public:
 
     bool isHost();
     void updateGroupState();
+    void showToolForm(bool show = true);
 
 private:
     void onFrame(int width, int height, uint8_t* dataY, uint8_t* dataU, uint8_t* dataV,
@@ -46,7 +47,6 @@ private:
     QMargins getMargins(bool vertical);
     void initUI();
 
-    void showToolForm(bool show = true);
     void moveCenter();
     void installShortcut();
     QRect getScreenRect();

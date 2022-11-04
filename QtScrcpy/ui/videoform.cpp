@@ -667,8 +667,7 @@ void VideoForm::mouseDoubleClickEvent(QMouseEvent *event)
     qreal y = event->localPos().y() / m_videoWidget->size().height();
     if (y < 0) {
         Form* form = qobject_cast<Form*>(parentWidget());
-        if (form->updateMainForm(m_serial)) showToolForm(true);
-        else showToolForm(false);
+        form->updateMainForm(m_serial);
     }
 }
 

@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "dialog.h"
+#include "logindialog.h"
 #include "mousetap/mousetap.h"
 
 static Dialog *g_mainDlg = Q_NULLPTR;
@@ -18,14 +19,41 @@ void installTranslator();
 static QtMsgType g_msgType = QtInfoMsg;
 QtMsgType covertLogLevel(const QString &logLevel);
 
+#ifdef Q_OS_WIN32
+std::string GetProcessorId() {
+    std::array<int, 4> cpuInfo;
+    __cpuid(cpuInfo.data(), 1);
+    std::ostringstream buffer;
+    buffer
+        << std::uppercase << std::hex << std::setfill('0')
+        << std::setw(8) << cpuInfo.at(3)
+        << std::setw(8) << cpuInfo.at(0);
+    return buffer.str();
+}
+#endif
+
 int main(int argc, char *argv[])
 {
     // set env
+    std::string machine_code = "DEFAULT_MACHINECODE";
 #ifdef Q_OS_WIN32
     qputenv("QTSCRCPY_ADB_PATH", "../../../QtScrcpy/QtScrcpyCore/src/third_party/adb/win/adb.exe");
     qputenv("QTSCRCPY_SERVER_PATH", "../../../QtScrcpy/QtScrcpyCore/src/third_party/scrcpy-server");
     qputenv("QTSCRCPY_KEYMAP_PATH", "../../../keymap");
     qputenv("QTSCRCPY_CONFIG_PATH", "../../../config");
+
+    const int VolumeSerialLength = 9; // 8 hex digits + zero termination
+    char VolumeSerial[VolumeSerialLength] = { 0 };
+    DWORD VolumeSerialNumber;
+
+    if (GetVolumeInformationA(NULL, NULL, NULL, &VolumeSerialNumber, NULL, NULL, NULL, NULL)) {
+        sprintf_s(VolumeSerial, VolumeSerialLength, "%08lX", VolumeSerialNumber);
+        printf("Volume serial number: %8.8s.\n", VolumeSerial);
+        return 0;
+    } else {
+        printf("GetVolumeInformationA() error: %08lX\n", GetLastError());
+    }
+    std::string machine_code = GetProcessorId() + std::string(&VolumeSerial[0]);
 #endif
 
 #ifdef Q_OS_OSX
@@ -106,8 +134,15 @@ int main(int argc, char *argv[])
 
     qsc::AdbProcess::setAdbPath(Config::getInstance().getAdbPath());
 
-    g_mainDlg = new Dialog {};
-    g_mainDlg->show();
+    LoginDialog* dlg = new LoginDialog(QString::fromStdString(machine_code));
+    qInfo() << "Machine code: " << QString::fromStdString(machine_code);
+    if(dlg->exec() == QDialog::Accepted) {
+        g_mainDlg = new Dialog {};
+        g_mainDlg->show();
+    }
+    else
+        return 0;
+    delete dlg;
 
     qInfo() << QObject::tr("This software is completely open source and free. Use it at your own risk. You can download it at the "
             "following address:");
