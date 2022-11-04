@@ -5,6 +5,9 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTranslator>
+#include <sstream>
+#include <array>
+#include <iomanip>
 
 #include "config.h"
 #include "dialog.h"
@@ -20,6 +23,8 @@ static QtMsgType g_msgType = QtInfoMsg;
 QtMsgType covertLogLevel(const QString &logLevel);
 
 #ifdef Q_OS_WIN32
+
+#include <Windows.h>
 std::string GetProcessorId() {
     std::array<int, 4> cpuInfo;
     __cpuid(cpuInfo.data(), 1);
@@ -49,11 +54,10 @@ int main(int argc, char *argv[])
     if (GetVolumeInformationA(NULL, NULL, NULL, &VolumeSerialNumber, NULL, NULL, NULL, NULL)) {
         sprintf_s(VolumeSerial, VolumeSerialLength, "%08lX", VolumeSerialNumber);
         printf("Volume serial number: %8.8s.\n", VolumeSerial);
-        return 0;
     } else {
         printf("GetVolumeInformationA() error: %08lX\n", GetLastError());
     }
-    std::string machine_code = GetProcessorId() + std::string(&VolumeSerial[0]);
+    machine_code = GetProcessorId() + std::string(&VolumeSerial[0]);
 #endif
 
 #ifdef Q_OS_OSX
@@ -136,7 +140,7 @@ int main(int argc, char *argv[])
 
     LoginDialog* dlg = new LoginDialog(QString::fromStdString(machine_code));
     qInfo() << "Machine code: " << QString::fromStdString(machine_code);
-    if(dlg->exec() == QDialog::Accepted) {
+    if(dlg->verifyLicense() || dlg->exec() == QDialog::Accepted) {
         g_mainDlg = new Dialog {};
         g_mainDlg->show();
     }

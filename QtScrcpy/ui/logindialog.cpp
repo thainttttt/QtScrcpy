@@ -6,6 +6,7 @@
 #include <QNetworkReply>
 #include <QJsonArray>
 #include <QDateTime>
+#include <QTimer>
 
 #include "logindialog.h"
 #include "ui_logindialog.h"
@@ -16,8 +17,6 @@ LoginDialog::LoginDialog(QString _machineCode, QWidget *parent) :
 {
     machineCode = _machineCode;
     mgr = new QNetworkAccessManager(this);
-
-    verifyLicense();
 
     ui->setupUi(this);
     setWindowTitle(tr("Enter a license key"));
@@ -33,7 +32,7 @@ LoginDialog::~LoginDialog()
     delete ui;
 }
 
-void LoginDialog::verifyLicense() {
+bool LoginDialog::verifyLicense() {
     QNetworkRequest request(QUrl("https://license.lalasoft.vn/api/checkmachine"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -56,12 +55,21 @@ void LoginDialog::verifyLicense() {
     obj["data"] = obj_data;
     QJsonDocument doc(obj);
     QByteArray data = doc.toJson();
-    reply = mgr->post(request, data);
 
-    // process response
-    QObject::connect(reply, &QNetworkReply::finished, this, [this](){
+    // send request and wait for response
+    QEventLoop loop;
+    QTimer timer;    
+    timer.setSingleShot(true);
+    reply = mgr->post(request, data);
+    connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    connect(reply , SIGNAL(finished()), &loop, SLOT(quit()));
+    timer.start(3000);   // 3 secs. timeout
+    loop.exec();
+
+    bool accept = false;
+    if(timer.isActive()) {
+        timer.stop();
         if(reply->error() == QNetworkReply::NoError){
-            bool accept = false;
             QString contents = QString::fromUtf8(reply->readAll());
             qDebug() << "contents: " << contents;
             QJsonDocument jsonResponse = QJsonDocument::fromJson(contents.toUtf8());
@@ -76,14 +84,19 @@ void LoginDialog::verifyLicense() {
                     break;
                 }
             }
-            if (accept) QDialog::accept();
         }
         else {
             QString err = reply->errorString();
             qDebug() << "Error: " << err;
         }
-        reply->deleteLater();
-    });
+    } else {
+        // timeout
+        disconnect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+        reply->abort();
+    }
+    reply->deleteLater();
+    if (!accept) qDebug() << "The license is invalid.";
+    return accept;
 }
 
 void LoginDialog::on_loginBtn_clicked()
@@ -94,15 +107,17 @@ void LoginDialog::on_loginBtn_clicked()
     // init data
     QJsonObject obj_data;
     qint64 time = QDateTime::currentMSecsSinceEpoch();
+    QString key = ui->pwdLineEdit->text();
+    QString productName = QString::fromUtf8(PRODUCT_NAME);
     QString hash = QString(QCryptographicHash::hash(
-        (QString("liclalasoft") + machineCode + QString::number(time)).toUtf8(),
+        (QString("liclalasoft") + machineCode + key + productName + QString::number(time)).toUtf8(),
         QCryptographicHash::Md5
     ).toHex());
 
     // update data
     obj_data["machine_code"] = machineCode;
-    obj_data["code"] = ui->pwdLineEdit->text();
-    obj_data["type_product"] = QString::fromUtf8(PRODUCT_NAME);
+    obj_data["code"] = key;
+    obj_data["type_product"] = productName;
     QJsonObject obj;
     obj["hash"] = hash;
     obj["time"] = time;
@@ -122,8 +137,8 @@ void LoginDialog::on_loginBtn_clicked()
 
             bool jsonArray = jsonObject["status"].toBool();
             Q_UNUSED(jsonArray);
-            // if (!jsonArray) {
-            if (0) {
+            if (!jsonArray) {
+            // if (0) {
                 QMessageBox::warning(this, "License is invalid", "Please make sure you have a valid license.", QMessageBox::Ok);
                 ui->pwdLineEdit->clear();
                 ui->pwdLineEdit->setFocus();

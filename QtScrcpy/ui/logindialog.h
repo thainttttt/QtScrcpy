@@ -16,9 +16,9 @@ class LoginDialog : public QDialog
 public:
     explicit LoginDialog(QString _machineCode, QWidget *parent = nullptr);
     ~LoginDialog();
+    bool verifyLicense();
 
 private:
-    void verifyLicense();
     void on_loginBtn_clicked();
     void on_quitBtn_clicked();
 
