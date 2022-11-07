@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     } else {
         printf("GetVolumeInformationA() error: %08lX\n", GetLastError());
     }
-    machine_code = GetProcessorId() + std::string(&VolumeSerial[0]);
+    machine_code = std::string(&VolumeSerial[0]) + GetProcessorId();
 #endif
 
 #ifdef Q_OS_OSX

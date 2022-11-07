@@ -105,7 +105,6 @@ void LoginDialog::on_loginBtn_clicked()
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     // init data
-    QJsonObject obj_data;
     qint64 time = QDateTime::currentMSecsSinceEpoch();
     QString key = ui->pwdLineEdit->text();
     QString productName = QString::fromUtf8(PRODUCT_NAME);
@@ -115,6 +114,7 @@ void LoginDialog::on_loginBtn_clicked()
     ).toHex());
 
     // update data
+    QJsonObject obj_data;
     obj_data["machine_code"] = machineCode;
     obj_data["code"] = key;
     obj_data["type_product"] = productName;
