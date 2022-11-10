@@ -1,4 +1,5 @@
 #include <QPointer>
+#include <QDebug>
 
 #include "groupcontroller.h"
 #include "videoform.h"
@@ -87,7 +88,7 @@ void GroupController::mouseEvent(const QMouseEvent *from, const QSize &frameSize
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -103,7 +104,7 @@ void GroupController::wheelEvent(const QWheelEvent *from, const QSize &frameSize
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -119,7 +120,7 @@ void GroupController::keyEvent(const QKeyEvent *from, const QSize &frameSize, co
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -134,7 +135,7 @@ void GroupController::postGoBack()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -149,7 +150,7 @@ void GroupController::postGoHome()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -164,7 +165,7 @@ void GroupController::postGoMenu()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -179,7 +180,7 @@ void GroupController::postAppSwitch()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -194,7 +195,7 @@ void GroupController::postPower()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -209,7 +210,7 @@ void GroupController::postVolumeUp()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -224,7 +225,7 @@ void GroupController::postVolumeDown()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -239,7 +240,7 @@ void GroupController::postCopy()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -254,7 +255,7 @@ void GroupController::postCut()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -269,7 +270,7 @@ void GroupController::setScreenPowerMode(bool open)
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -284,7 +285,7 @@ void GroupController::expandNotificationPanel()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -299,7 +300,7 @@ void GroupController::collapsePanel()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -314,7 +315,7 @@ void GroupController::postBackOrScreenOn(bool down)
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -329,7 +330,7 @@ void GroupController::postTextInput(QString &text)
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -344,7 +345,7 @@ void GroupController::requestDeviceClipboard()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -359,7 +360,7 @@ void GroupController::setDeviceClipboard(bool pause)
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -374,7 +375,7 @@ void GroupController::clipboardPaste()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -389,7 +390,7 @@ void GroupController::pushFileRequest(const QString &file, const QString &device
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -404,7 +405,7 @@ void GroupController::installApkRequest(const QString &apkFile)
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -419,7 +420,7 @@ void GroupController::screenshot()
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 
@@ -434,7 +435,7 @@ void GroupController::showTouch(bool show)
             continue;
         }
         auto device = qsc::IDeviceManage::getInstance().getDevice(serial);
-        if (!device) {
+        if (!device || !device->enableGroup) {
             continue;
         }
 

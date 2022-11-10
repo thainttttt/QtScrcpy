@@ -913,7 +913,6 @@ void Dialog::onRefreshBtnClick() {
     for (int i=0; i<ui->groupTabPhone->count(); i++) {
         auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
         auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(i, QTabBar::LeftSide);
-        if (!box->isChecked()) continue;
 
         for (int j=0; j<listWidget->count(); j++) {
             QWidget* itemWidget = listWidget->itemWidget(listWidget->item(j));
@@ -924,7 +923,15 @@ void Dialog::onRefreshBtnClick() {
                 auto item = listWidget->takeItem(j);
                 delete item;
                 j--;
-            } else form->addForm(form->videoForms[targetLabel.toStdString()]);
+            } else {
+                auto device = qsc::IDeviceManage::getInstance().getDevice(targetLabel);
+                if (!box->isChecked()) {
+                    device->enableGroup = false;
+                } else {
+                    form->addForm(form->videoForms[targetLabel.toStdString()]);
+                    device->enableGroup = true;
+                }
+            }
         }
     }
 

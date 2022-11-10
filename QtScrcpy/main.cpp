@@ -111,8 +111,8 @@ int main(int argc, char *argv[])
 
     // windows下通过qmake VERSION变量或者rc设置版本号和应用名称后，这里可以直接拿到
     // mac下拿到的是CFBundleVersion的值
-    qDebug() << a.applicationVersion();
-    qDebug() << a.applicationName();
+    qDebug() << "Version: " << a.applicationVersion();
+    qDebug() << "AppName: " << a.applicationName();
 
     //update version
     QStringList versionList = QCoreApplication::applicationVersion().split(".");
@@ -227,6 +227,14 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         if (g_mainDlg && g_mainDlg->isVisible() && !g_mainDlg->filterLog(msg)) {
             g_mainDlg->outLog(msg);
         }
+    } else if (type == QtDebugMsg) {
+        QString dt = QDateTime::currentDateTime().toString("dd/MM/yyyy hh:mm:ss");
+        QString txt = QString("[%1] ").arg(dt) + msg;
+
+        QFile outFile("./LogFile.log");
+        outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+        QTextStream textStream(&outFile);
+        textStream << txt << "\n";
     }
 
     if (QtFatalMsg == type) {

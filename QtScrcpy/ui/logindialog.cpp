@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QDateTime>
 #include <QTimer>
+#include <QNetworkProxy>
 
 #include "logindialog.h"
 #include "ui_logindialog.h"
@@ -17,6 +18,7 @@ LoginDialog::LoginDialog(QString _machineCode, QWidget *parent) :
 {
     machineCode = _machineCode;
     mgr = new QNetworkAccessManager(this);
+    QNetworkProxy::setApplicationProxy(QNetworkProxy(QNetworkProxy::NoProxy));
 
     ui->setupUi(this);
     setWindowTitle(tr("Enter a license key"));
@@ -43,7 +45,7 @@ bool LoginDialog::verifyLicense() {
         (QString("liclalasoft") + machineCode + QString::number(time)).toUtf8(),
         QCryptographicHash::Md5
     ).toHex());
-    qDebug() << "Hashhhh" << hash << time;
+    // qDebug() << "Hashhhh" << hash << time;
 
     // update data
     obj_data["machine_code"] = machineCode;
@@ -71,7 +73,7 @@ bool LoginDialog::verifyLicense() {
         timer.stop();
         if(reply->error() == QNetworkReply::NoError){
             QString contents = QString::fromUtf8(reply->readAll());
-            qDebug() << "contents: " << contents;
+            // qDebug() << "contents: " << contents;
             QJsonDocument jsonResponse = QJsonDocument::fromJson(contents.toUtf8());
             QJsonObject jsonObject = jsonResponse.object();
             QJsonArray jsonArray = jsonObject["data"].toArray();
@@ -81,13 +83,14 @@ bool LoginDialog::verifyLicense() {
                 if (obj["type_product"].toString() == QString::fromUtf8(PRODUCT_NAME)
                 && obj["status"].toBool()) {
                     accept = true;
+                    qDebug() << "Product activated successfully.";
                     break;
                 }
             }
         }
         else {
             QString err = reply->errorString();
-            qDebug() << "Error: " << err;
+            qDebug() << "[verifyLicense] Error: " << err;
         }
     } else {
         // timeout
@@ -125,13 +128,13 @@ void LoginDialog::on_loginBtn_clicked()
     QJsonDocument doc(obj);
     QByteArray data = doc.toJson();
     reply = mgr->post(request, data);
-    qDebug() << "doc" << doc;
+    // qDebug() << "doc" << doc;
 
     // process response
     QObject::connect(reply, &QNetworkReply::finished, this, [this](){
         if(reply->error() == QNetworkReply::NoError){
             QString contents = QString::fromUtf8(reply->readAll());
-            qDebug() << "contents: " << contents;
+            // qDebug() << "contents: " << contents;
             QJsonDocument jsonResponse = QJsonDocument::fromJson(contents.toUtf8());
             QJsonObject jsonObject = jsonResponse.object();
 
@@ -150,7 +153,7 @@ void LoginDialog::on_loginBtn_clicked()
             ui->pwdLineEdit->setFocus();
 
             QString err = reply->errorString();
-            qDebug() << "Error: " << err;
+            qDebug() << "[on_loginBtn_clicked] Error: " << err;
         }
         reply->deleteLater();
     });
