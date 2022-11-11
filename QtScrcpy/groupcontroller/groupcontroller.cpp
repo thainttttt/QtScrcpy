@@ -1,5 +1,6 @@
 #include <QPointer>
 #include <QDebug>
+#include <QtConcurrent/QtConcurrent>
 
 #include "groupcontroller.h"
 #include "videoform.h"
@@ -99,6 +100,7 @@ void GroupController::mouseEvent(const QMouseEvent *from, const QSize &frameSize
 void GroupController::wheelEvent(const QWheelEvent *from, const QSize &frameSize, const QSize &showSize)
 {
     Q_UNUSED(frameSize);
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -108,8 +110,13 @@ void GroupController::wheelEvent(const QWheelEvent *from, const QSize &frameSize
             continue;
         }
 
-        device->wheelEvent(from, getFrameSize(serial), showSize);
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->wheelEvent(from, getFrameSize(serial), showSize);
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::keyEvent(const QKeyEvent *from, const QSize &frameSize, const QSize &showSize)
