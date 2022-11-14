@@ -9,7 +9,9 @@
 #include "videoform.h"
 #include "../groupcontroller/groupcontroller.h"
 
-ToolForm::ToolForm(QWidget *adsorbWidget, AdsorbPositions adsorbPos) : MagneticWidget(adsorbWidget, adsorbPos), ui(new Ui::ToolForm)
+ToolForm::ToolForm(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::ToolForm)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() | Qt::FramelessWindowHint);

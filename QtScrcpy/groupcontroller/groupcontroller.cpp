@@ -84,6 +84,7 @@ void GroupController::removeDevice(const QString &serial)
 void GroupController::mouseEvent(const QMouseEvent *from, const QSize &frameSize, const QSize &showSize)
 {
     Q_UNUSED(frameSize);
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -93,8 +94,13 @@ void GroupController::mouseEvent(const QMouseEvent *from, const QSize &frameSize
             continue;
         }
 
-        device->mouseEvent(from, getFrameSize(serial), showSize);
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->mouseEvent(from, getFrameSize(serial), showSize);
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::wheelEvent(const QWheelEvent *from, const QSize &frameSize, const QSize &showSize)
@@ -122,6 +128,7 @@ void GroupController::wheelEvent(const QWheelEvent *from, const QSize &frameSize
 void GroupController::keyEvent(const QKeyEvent *from, const QSize &frameSize, const QSize &showSize)
 {
     Q_UNUSED(frameSize);
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -131,12 +138,18 @@ void GroupController::keyEvent(const QKeyEvent *from, const QSize &frameSize, co
             continue;
         }
 
-        device->keyEvent(from, getFrameSize(serial), showSize);
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->keyEvent(from, getFrameSize(serial), showSize);
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postGoBack()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -146,12 +159,18 @@ void GroupController::postGoBack()
             continue;
         }
 
-        device->postGoBack();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postGoBack();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postGoHome()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -161,12 +180,18 @@ void GroupController::postGoHome()
             continue;
         }
 
-        device->postGoHome();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postGoHome();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postGoMenu()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -176,12 +201,18 @@ void GroupController::postGoMenu()
             continue;
         }
 
-        device->postGoMenu();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postGoMenu();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postAppSwitch()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -191,12 +222,18 @@ void GroupController::postAppSwitch()
             continue;
         }
 
-        device->postAppSwitch();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postAppSwitch();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postPower()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -206,12 +243,18 @@ void GroupController::postPower()
             continue;
         }
 
-        device->postPower();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postPower();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postVolumeUp()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -221,12 +264,18 @@ void GroupController::postVolumeUp()
             continue;
         }
 
-        device->postVolumeUp();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postVolumeUp();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postVolumeDown()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -236,12 +285,18 @@ void GroupController::postVolumeDown()
             continue;
         }
 
-        device->postVolumeDown();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postVolumeDown();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postCopy()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -251,12 +306,18 @@ void GroupController::postCopy()
             continue;
         }
 
-        device->postCopy();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postCopy();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postCut()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -266,12 +327,18 @@ void GroupController::postCut()
             continue;
         }
 
-        device->postCut();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postCut();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::setScreenPowerMode(bool open)
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -281,12 +348,18 @@ void GroupController::setScreenPowerMode(bool open)
             continue;
         }
 
-        device->setScreenPowerMode(open);
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->setScreenPowerMode(open);
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::expandNotificationPanel()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -296,12 +369,18 @@ void GroupController::expandNotificationPanel()
             continue;
         }
 
-        device->expandNotificationPanel();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->expandNotificationPanel();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::collapsePanel()
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -311,12 +390,18 @@ void GroupController::collapsePanel()
             continue;
         }
 
-        device->collapsePanel();
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->collapsePanel();
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postBackOrScreenOn(bool down)
 {
+    std::vector<QFuture<void> > threads;
     for (const auto& serial : m_devices) {
         if (true == isHost(serial)) {
             continue;
@@ -326,8 +411,13 @@ void GroupController::postBackOrScreenOn(bool down)
             continue;
         }
 
-        device->postBackOrScreenOn(down);
+        QFuture<void> thread = QtConcurrent::run([=]() {
+            device->postBackOrScreenOn(down);
+        });
+        threads.push_back(thread);
     }
+
+    for (auto &thread : threads) thread.waitForFinished();
 }
 
 void GroupController::postTextInput(QString &text)

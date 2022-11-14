@@ -13,12 +13,12 @@ namespace Ui
 }
 
 class Device;
-class ToolForm : public MagneticWidget
+class ToolForm : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ToolForm(QWidget *adsorbWidget, AdsorbPositions adsorbPos);
+    explicit ToolForm(QWidget *parent = nullptr);
     ~ToolForm();
 
     void updateGroupState();
