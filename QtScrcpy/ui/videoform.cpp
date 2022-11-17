@@ -698,7 +698,7 @@ void VideoForm::wheelEvent(QWheelEvent *event)
     }
 }
 
-void VideoForm::keyPressEvent(QKeyEvent *event)
+void VideoForm::keyPress(QKeyEvent *event)
 {
     auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
     if (!device) {
@@ -711,7 +711,7 @@ void VideoForm::keyPressEvent(QKeyEvent *event)
     emit device->keyEvent(event, m_videoWidget->frameSize(), m_videoWidget->size());
 }
 
-void VideoForm::keyReleaseEvent(QKeyEvent *event)
+void VideoForm::keyRelease(QKeyEvent *event)
 {
     auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
     if (!device) {

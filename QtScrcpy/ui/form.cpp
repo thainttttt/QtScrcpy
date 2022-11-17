@@ -104,13 +104,13 @@ void Form::keyPressEvent(QKeyEvent *event) {
     // QMouseEvent event(QEvent::MouseButtonPress, pos, 0, 0, 0);
     // QKeyPressEvent *event2 = static_cast<QKeyPressEvent>
 
-    QApplication::sendEvent(videoForms[currentForm.toStdString()], event);
+    videoForms[currentForm.toStdString()]->keyPress(event);
 }
 
 void Form::keyReleaseEvent(QKeyEvent *event) {
     if (currentForm.isEmpty()) return;
 
-    QApplication::sendEvent(videoForms[currentForm.toStdString()], event);
+    videoForms[currentForm.toStdString()]->keyRelease(event);
 }
 
 void Form::updateMainForm(QString& serial) {

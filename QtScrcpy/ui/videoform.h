@@ -32,6 +32,8 @@ public:
     void removeBlackRect();
     void showFPS(bool show);
     void switchFullScreen();
+    void keyPress(QKeyEvent *event);
+    void keyRelease(QKeyEvent *event);
 
     bool isHost();
     void updateGroupState();
@@ -57,8 +59,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
 
     void paintEvent(QPaintEvent *) override;
     void showEvent(QShowEvent *event) override;

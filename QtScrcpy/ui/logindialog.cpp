@@ -65,7 +65,7 @@ bool LoginDialog::verifyLicense() {
     reply = mgr->post(request, data);
     connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
     connect(reply , SIGNAL(finished()), &loop, SLOT(quit()));
-    timer.start(3000);   // 3 secs. timeout
+    timer.start(5000);   // 5 secs. timeout
     loop.exec();
 
     bool accept = false;
@@ -73,7 +73,6 @@ bool LoginDialog::verifyLicense() {
         timer.stop();
         if(reply->error() == QNetworkReply::NoError){
             QString contents = QString::fromUtf8(reply->readAll());
-            // qDebug() << "contents: " << contents;
             QJsonDocument jsonResponse = QJsonDocument::fromJson(contents.toUtf8());
             QJsonObject jsonObject = jsonResponse.object();
             QJsonArray jsonArray = jsonObject["data"].toArray();
