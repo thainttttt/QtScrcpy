@@ -46,9 +46,6 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 	ui->groupTabPhone->setCornerWidget(pTabCornerWidget, Qt::TopRightCorner);
     ui->groupTabPhone->setTabsClosable(true);
     addNewTab(defaultGroup);
-    //tick checkbox defaultGroup
-    auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(0, QTabBar::LeftSide);
-    box->setChecked(true);
     enabledGroup.push_back(defaultGroup);
 
     QPushButton *refreshBtn = new QPushButton(this);
@@ -827,7 +824,6 @@ void Dialog::addNewTab(QString &label) {
 	QListWidget* listWidget = new QListWidget;
 
 	ui->groupTabPhone->addTab(listWidget, label);
-	ui->groupTabPhone->tabBar()->setTabButton(ui->groupTabPhone->tabBar()->count()-1, QTabBar::LeftSide, new QCheckBox());
 
     connect(listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(on_itemDoubleClicked(QListWidgetItem*)));
 }
@@ -874,7 +870,9 @@ void Dialog::onRefreshBtnClick() {
     */
     form->setRow(ui->formRowEdit->text().trimmed().toUInt());
 
+    int currentIndex = ui->groupTabPhone->currentIndex();
     enabledGroup.clear();
+    enabledGroup.push_back(ui->groupTabPhone->tabText(currentIndex));
     for (int i=0; i<ui->groupTabPhone->count(); i++) {
         auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
         QString tabGroup = ui->groupTabPhone->tabText(i);
@@ -904,15 +902,12 @@ void Dialog::onRefreshBtnClick() {
             }
             j++;
         }
-        auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(i, QTabBar::LeftSide);
-        if (box->isChecked()) enabledGroup.push_back(ui->groupTabPhone->tabText(i));
     }
 
     // refresh form
     form->resetForm();
     for (int i=0; i<ui->groupTabPhone->count(); i++) {
         auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
-        auto box = (QCheckBox*) ui->groupTabPhone->tabBar()->tabButton(i, QTabBar::LeftSide);
 
         for (int j=0; j<listWidget->count(); j++) {
             QWidget* itemWidget = listWidget->itemWidget(listWidget->item(j));
@@ -925,7 +920,7 @@ void Dialog::onRefreshBtnClick() {
                 j--;
             } else {
                 auto device = qsc::IDeviceManage::getInstance().getDevice(targetLabel);
-                if (!box->isChecked()) {
+                if (i != currentIndex) {
                     device->enableGroup = false;
                 } else {
                     form->addForm(form->videoForms[targetLabel.toStdString()]);

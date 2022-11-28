@@ -115,10 +115,14 @@ void Form::keyReleaseEvent(QKeyEvent *event) {
 
 void Form::updateMainForm(QString& serial) {
     unsetMainForm();
-
+    
+    bool groupCtl = false;
     if (!mainSerial.isEmpty()) {
         auto oldMainForm = videoForms[mainSerial.toStdString()];
-        if (oldMainForm->isHost()) oldMainForm->updateGroupState();
+        if (oldMainForm->isHost()) {
+            oldMainForm->updateGroupState();
+            groupCtl = true;
+        }
         oldMainForm->showToolForm(false);
         addForm(oldMainForm);
 
@@ -129,7 +133,7 @@ void Form::updateMainForm(QString& serial) {
     }
     auto mainForm = videoForms[serial.toStdString()];
     setMainForm(mainForm);
-    mainForm->updateGroupState();
+    if (groupCtl) mainForm->updateGroupState();
     mainForm->showToolForm(true);
 
     mainSerial = serial;
