@@ -58,9 +58,9 @@
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>-303</x>
         <y>0</y>
-        <width>750</width>
+        <width>588</width>
         <height>54</height>
        </rect>
       </property>
@@ -151,36 +151,6 @@
         <widget class="QPushButton" name="powerBtn">
          <property name="toolTip">
           <string>power</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="closeScreenBtn">
-         <property name="toolTip">
-          <string>close screen</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="openScreenBtn">
-         <property name="toolTip">
-          <string>open screen</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="touchBtn">
-         <property name="toolTip">
-          <string>touch switch</string>
          </property>
          <property name="text">
           <string/>

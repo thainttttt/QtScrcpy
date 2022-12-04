@@ -15,6 +15,7 @@
 #include "ccombobox.h"
 
 QString s_keyMapPath = "";
+#define GROUP_BACKUP "backup.txt"
 
 const QString &getKeyMapPath()
 {
@@ -28,11 +29,31 @@ const QString &getKeyMapPath()
     return s_keyMapPath;
 }
 
+QMap<QString, QString> loadBackup() {
+    QMap<QString, QString> ret;
+    qInfo() << "================" << QCoreApplication::applicationDirPath() + "/" + GROUP_BACKUP;
+    QFile inputFile(QCoreApplication::applicationDirPath() + "/" + GROUP_BACKUP);
+    if (inputFile.open(QIODevice::ReadOnly))
+    {
+    QTextStream in(&inputFile);
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList list = line.split("|");
+        ret[list[1]] = list[0];
+    }
+    inputFile.close();
+    }
+
+    return ret;
+}
+
 Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
     initUI();
     defaultGroup = "UnGroup";
+    allGroup = "All";
     ui->formRowEdit->setValidator(new QIntValidator(1, 10, this));
     setWindowFlags(Qt::WindowStaysOnTopHint);
 
@@ -45,14 +66,18 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 	pHLayout->addWidget(pButton);
 	ui->groupTabPhone->setCornerWidget(pTabCornerWidget, Qt::TopRightCorner);
     ui->groupTabPhone->setTabsClosable(true);
+    addNewTab(allGroup);
     addNewTab(defaultGroup);
-    enabledGroup.push_back(defaultGroup);
+    enabledGroup = defaultGroup;
 
     QPushButton *refreshBtn = new QPushButton(this);
 	refreshBtn->setText("Refresh");
     ui->verticalLayout_4->addWidget(refreshBtn);
 
     updateBootConfig(true);
+
+    backup = loadBackup();
+    qInfo() << "=============backup data=============" << backup;
 
     // signal
     connect(ui->groupTabPhone, &QTabWidget::tabBarDoubleClicked, this, &Dialog::onTabBarDoubleClicked);
@@ -104,6 +129,13 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
                 for (auto &item : devices) {
                     ui->serialBox->addItem(item);
 
+                    // update timeout
+                    int count = loadCount.value(item, 1);
+                    // if cannot load serial in 3 times, continue
+                    if (count > 3) {
+                        continue;
+                    }
+                    loadCount[item] = count + 1;
                     if(form->videoForms.find(item.toStdString()) == form->videoForms.end()) {
                         ui->serialBox->setCurrentText(item);
                         on_startServerBtn_clicked();
@@ -512,17 +544,34 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     GroupController::instance().addDevice(serial);
 
     form->videoForms[serial.toStdString()] = videoForm;
-    // add item to connectedPhoneList
-    QListWidget* connectedPhoneList = (QListWidget*) ui->groupTabPhone->widget(0);
-    QListWidgetItem* bItemWidget = new QListWidgetItem();
-    QWidget* itemWidget = newTabItem(serial, defaultGroup);
-    bItemWidget->setSizeHint(itemWidget->sizeHint());
-    connectedPhoneList->addItem(bItemWidget);
-    connectedPhoneList->setItemWidget(bItemWidget, itemWidget);
+    
+    // restore from backup automatically
+    QString group = defaultGroup;
+    QListWidget* connectedPhoneList = (QListWidget*) ui->groupTabPhone->widget(1);  // default id=1 (defaultGroup)
+    if (backup.contains(serial)) {
+        group = backup.value(serial);
+        bool newGroup = true;
+        for (int k=1; k<ui->groupTabPhone->count(); k++) {
+            if (ui->groupTabPhone->tabText(k) == group) {
+                newGroup = false;
+                connectedPhoneList = (QListWidget*) ui->groupTabPhone->widget(k);
+                break;
+            }
+        }
+        if (newGroup) {
+            addNewTab(group);
+            connectedPhoneList = (QListWidget*) ui->groupTabPhone->widget(ui->groupTabPhone->count()-1);
+        }
+    }
 
-    // if default group is enabled, show in form
-    auto it = std::find(enabledGroup.begin(), enabledGroup.end(), defaultGroup);
-    if (it != enabledGroup.end()) form->addForm(videoForm);
+    // add item to connectedPhoneList
+    newTabItem(connectedPhoneList, false, serial, group);
+
+    // add item to allList
+    newTabItem((QListWidget*) ui->groupTabPhone->widget(0), true, serial, group);
+
+    // if group is enabled, show in form
+    if (group == enabledGroup) form->addForm(videoForm);
 }
 
 void Dialog::onDeviceDisconnected(QString serial)
@@ -830,21 +879,17 @@ void Dialog::addNewTab(QString &label) {
 
 void Dialog::closeCurrentTab(int index)
 {
-	if (index == 0)
+	if (index < 2)
 		return;
 
     auto listWidget = (QListWidget*) ui->groupTabPhone->widget(index);
-    auto targetListWidget = (QListWidget*) ui->groupTabPhone->widget(0);
+    auto targetListWidget = (QListWidget*) ui->groupTabPhone->widget(1);  //Ungroup
     while (listWidget->count()>0) {
         QListWidgetItem* item = listWidget->item(0);
         QWidget* itemWidget = listWidget->itemWidget(item);
         QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
 
-        QListWidgetItem* moveItem = new QListWidgetItem();
-        QWidget* moveWidget = newTabItem(targetLabel, defaultGroup);
-        moveItem->setSizeHint(moveWidget->sizeHint());
-        targetListWidget->addItem(moveItem);
-        targetListWidget->setItemWidget(moveItem, moveWidget);
+        newTabItem(targetListWidget, false, targetLabel, defaultGroup);
 
         item = listWidget->takeItem(0);
         delete item;
@@ -864,51 +909,57 @@ void Dialog::onAddButtonClick()
 void Dialog::onRefreshBtnClick() {
     /*
     b0: update form row
-    b1: move
+    b1.1: remove in other group
+    b1.2: update from all group
     b2: update tick group
     b3: refresh form
     */
     form->setRow(ui->formRowEdit->text().trimmed().toUInt());
 
-    int currentIndex = ui->groupTabPhone->currentIndex();
-    enabledGroup.clear();
-    enabledGroup.push_back(ui->groupTabPhone->tabText(currentIndex));
-    for (int i=0; i<ui->groupTabPhone->count(); i++) {
+    // b1.1
+    for (int i=1; i<ui->groupTabPhone->count(); i++) {
         auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
-        QString tabGroup = ui->groupTabPhone->tabText(i);
-        for (int j=0; j<listWidget->count();) {
-            QListWidgetItem* item = listWidget->item(j);
-            QWidget* itemWidget = listWidget->itemWidget(item);
-            QString targetGroup = ((CComboBox*) itemWidget->layout()->itemAt(1)->widget())->currentText();
-            QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
 
-            // if label is diff, move it
-            if (targetGroup != tabGroup) {
-                for (int k=0; k<ui->groupTabPhone->count(); k++) {
-                    if (ui->groupTabPhone->tabText(k) == targetGroup) {
-                        auto targetListWidget = (QListWidget*) ui->groupTabPhone->widget(k);
-                        QListWidgetItem* moveItem = new QListWidgetItem();
-                        QWidget* moveWidget = newTabItem(targetLabel, targetGroup);
-                        moveItem->setSizeHint(moveWidget->sizeHint());
-                        targetListWidget->addItem(moveItem);
-                        targetListWidget->setItemWidget(moveItem, moveWidget);
-
-                        item = listWidget->takeItem(j);
-                        delete item;
-                        j--;
-                        break;
-                    }
-                }
-            }
-            j++;
+        while (listWidget->count()>0) {
+            QListWidgetItem* item = listWidget->item(0);
+            item = listWidget->takeItem(0);
+            delete item;
         }
+    }
+
+    // update enabledGroup, get currentIndex
+    int currentIndex = ui->groupTabPhone->currentIndex();
+    enabledGroup = ui->groupTabPhone->tabText(currentIndex);
+
+    // b1.2
+    QListWidget* allPhoneList = (QListWidget*) ui->groupTabPhone->widget(0);
+    for (int j=0; j<allPhoneList->count(); j++) {
+        QListWidgetItem* item = allPhoneList->item(j);
+        QWidget* itemWidget = allPhoneList->itemWidget(item);
+        QString targetGroup = ((CComboBox*) itemWidget->layout()->itemAt(1)->widget())->currentText();
+        QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
+
+        int targetTabindex = 1;  //UnGroup
+        for (int k=1; k<ui->groupTabPhone->count(); k++) {
+            if (ui->groupTabPhone->tabText(k) != targetGroup) continue;
+            targetTabindex = k;
+            break;
+        }
+        auto targetListWidget = (QListWidget*) ui->groupTabPhone->widget(targetTabindex);
+        targetGroup = ui->groupTabPhone->tabText(targetTabindex);
+        ((CComboBox*) itemWidget->layout()->itemAt(1)->widget())->setCurrentText(targetGroup);
+        newTabItem(targetListWidget, false, targetLabel, targetGroup);
     }
 
     // refresh form
     form->resetForm();
+    QFile outFile(QCoreApplication::applicationDirPath() + "/" + GROUP_BACKUP);
+    outFile.open(QIODevice::WriteOnly);
+    qInfo() << "========BACKUP========";
+    QTextStream textStream(&outFile);
     for (int i=0; i<ui->groupTabPhone->count(); i++) {
         auto listWidget = (QListWidget*) ui->groupTabPhone->widget(i);
-
+        QString tabGroup = ui->groupTabPhone->tabText(i);
         for (int j=0; j<listWidget->count(); j++) {
             QWidget* itemWidget = listWidget->itemWidget(listWidget->item(j));
             QString targetLabel = ((QLabel*) itemWidget->layout()->itemAt(0)->widget())->text();
@@ -926,24 +977,31 @@ void Dialog::onRefreshBtnClick() {
                     form->addForm(form->videoForms[targetLabel.toStdString()]);
                     device->enableGroup = true;
                 }
+
+                textStream << tabGroup << "|" << targetLabel << "\n";
             }
         }
     }
+    outFile.close();
 
 }
 
-QWidget* Dialog::newTabItem(QString label, QString &group) {
+void Dialog::newTabItem(QListWidget* list, bool all, QString label, QString &group) {
+    QListWidgetItem* bItemWidget = new QListWidgetItem();
+
     QHBoxLayout *itemlayout = new QHBoxLayout();
     QWidget *itemWidget = new QWidget();
     itemlayout->addWidget(new QLabel(label));
-    auto itemListGroup = new CComboBox(ui->groupTabPhone);
+    auto itemListGroup = new CComboBox(ui->groupTabPhone, all);
     itemListGroup->addItem(group);
     itemlayout->addWidget(itemListGroup);
     itemlayout->setStretch(0, 1);
     itemlayout->setContentsMargins(0,0,0,0);
     itemWidget->setLayout(itemlayout);
-    
-    return itemWidget;
+
+    bItemWidget->setSizeHint(itemWidget->sizeHint());
+    list->addItem(bItemWidget);
+    list->setItemWidget(bItemWidget, itemWidget);
 }
 
 

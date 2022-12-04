@@ -84,7 +84,7 @@ private:
     const QString &getServerPath();
 
     void addNewTab(QString &label);
-    QWidget* newTabItem(QString label, QString &group);
+    void newTabItem(QListWidget* list, bool all, QString label, QString &group);
     void onTabBarDoubleClicked(int index);
 
 protected:
@@ -102,7 +102,10 @@ private:
 
     Form *form;
     QString defaultGroup;
-    std::vector<QString> enabledGroup;
+    QString allGroup;
+    QString enabledGroup;
+    QMap<QString, QString> backup;  // serial, group
+    QMap<QString, int> loadCount;  // serial, number of loading
 };
 
 #endif // DIALOG_H

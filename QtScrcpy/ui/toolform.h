@@ -43,11 +43,11 @@ private slots:
     void on_screenShotBtn_clicked();
     void on_volumeUpBtn_clicked();
     void on_volumeDownBtn_clicked();
-    void on_closeScreenBtn_clicked();
     void on_expandNotifyBtn_clicked();
-    void on_touchBtn_clicked();
     void on_groupControlBtn_clicked();
-    void on_openScreenBtn_clicked();
+    // void on_closeScreenBtn_clicked();
+    // void on_openScreenBtn_clicked();
+    // void on_touchBtn_clicked();
 
 private:
     void initStyle();

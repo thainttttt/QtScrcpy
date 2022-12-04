@@ -52,12 +52,12 @@ void ToolForm::initStyle()
     IconHelper::Instance()->SetIcon(ui->appSwitchBtn, QChar(0xf24d), 15);
     IconHelper::Instance()->SetIcon(ui->volumeUpBtn, QChar(0xf028), 15);
     IconHelper::Instance()->SetIcon(ui->volumeDownBtn, QChar(0xf027), 15);
-    IconHelper::Instance()->SetIcon(ui->openScreenBtn, QChar(0xf06e), 15);
-    IconHelper::Instance()->SetIcon(ui->closeScreenBtn, QChar(0xf070), 15);
+    // IconHelper::Instance()->SetIcon(ui->openScreenBtn, QChar(0xf06e), 15);
+    // IconHelper::Instance()->SetIcon(ui->closeScreenBtn, QChar(0xf070), 15);
     IconHelper::Instance()->SetIcon(ui->powerBtn, QChar(0xf011), 15);
     IconHelper::Instance()->SetIcon(ui->expandNotifyBtn, QChar(0xf103), 15);
     IconHelper::Instance()->SetIcon(ui->screenShotBtn, QChar(0xf0c4), 15);
-    IconHelper::Instance()->SetIcon(ui->touchBtn, QChar(0xf111), 15);
+    // IconHelper::Instance()->SetIcon(ui->touchBtn, QChar(0xf111), 15);
     IconHelper::Instance()->SetIcon(ui->groupControlBtn, QChar(0xf0c0), 15);
 }
 
@@ -187,14 +187,14 @@ void ToolForm::on_volumeDownBtn_clicked()
     device->postVolumeDown();
 }
 
-void ToolForm::on_closeScreenBtn_clicked()
-{
-    auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
-    if (!device) {
-        return;
-    }
-    device->setScreenPowerMode(false);
-}
+// void ToolForm::on_closeScreenBtn_clicked()
+// {
+//     auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
+//     if (!device) {
+//         return;
+//     }
+//     device->setScreenPowerMode(false);
+// }
 
 void ToolForm::on_expandNotifyBtn_clicked()
 {
@@ -205,16 +205,16 @@ void ToolForm::on_expandNotifyBtn_clicked()
     device->expandNotificationPanel();
 }
 
-void ToolForm::on_touchBtn_clicked()
-{
-    auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
-    if (!device) {
-        return;
-    }
+// void ToolForm::on_touchBtn_clicked()
+// {
+//     auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
+//     if (!device) {
+//         return;
+//     }
 
-    m_showTouch = !m_showTouch;
-    device->showTouch(m_showTouch);
-}
+//     m_showTouch = !m_showTouch;
+//     device->showTouch(m_showTouch);
+// }
 
 void ToolForm::on_groupControlBtn_clicked()
 {
@@ -222,11 +222,11 @@ void ToolForm::on_groupControlBtn_clicked()
     updateGroupControl();
 }
 
-void ToolForm::on_openScreenBtn_clicked()
-{
-    auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
-    if (!device) {
-        return;
-    }
-    device->setScreenPowerMode(true);
-}
+// void ToolForm::on_openScreenBtn_clicked()
+// {
+//     auto device = qsc::IDeviceManage::getInstance().getDevice(m_serial);
+//     if (!device) {
+//         return;
+//     }
+//     device->setScreenPowerMode(true);
+// }
