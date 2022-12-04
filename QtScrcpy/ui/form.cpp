@@ -82,10 +82,12 @@ void Form::resetForm() {
 
     unsetMainForm();
     if (!mainSerial.isEmpty()) {
-        auto oldMainForm = videoForms[mainSerial.toStdString()];
-        if (oldMainForm->isHost())
-            oldMainForm->updateGroupState();
-        oldMainForm->hide();
+        if(videoForms.find(mainSerial.toStdString())!=videoForms.end()) {
+            auto oldMainForm = videoForms[mainSerial.toStdString()];
+            if (oldMainForm->isHost())
+                oldMainForm->updateGroupState();
+            oldMainForm->hide();
+        }
         mainSerial.clear();
     }
 }
@@ -153,4 +155,8 @@ void Form::installShortcut() {
         }
         emit device->clipboardPaste();
     });
+}
+
+bool Form::isMainForm(QString& serial) {
+    return serial == mainSerial;
 }

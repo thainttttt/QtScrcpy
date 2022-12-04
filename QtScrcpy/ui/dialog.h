@@ -106,6 +106,7 @@ private:
     QString enabledGroup;
     QMap<QString, QString> backup;  // serial, group
     QMap<QString, int> loadCount;  // serial, number of loading
+    QTimer countRefreshTimer;
 };
 
 #endif // DIALOG_H

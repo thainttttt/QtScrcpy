@@ -26,6 +26,7 @@ public:
   void setCurrentForm(QString &serial);
   // true of show mainform, otherwise false
   void updateMainForm(QString& serial);
+  bool isMainForm(QString& serial);
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;

@@ -52,7 +52,7 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
     initUI();
-    defaultGroup = "UnGroup";
+    defaultGroup = "UnGr";
     allGroup = "All";
     ui->formRowEdit->setValidator(new QIntValidator(1, 10, this));
     setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -90,6 +90,11 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     form->show();
     form->showMaximized();
     form->setWindowTitle("ClickFarm.vn - Group Remote Control");
+
+    connect(&countRefreshTimer, &QTimer::timeout, this, [this](){
+        loadCount.clear();
+    });
+    countRefreshTimer.start(1000);
 
     on_useSingleModeCheck_clicked();
     on_updateDevice_clicked();
@@ -590,7 +595,7 @@ void Dialog::onDeviceDisconnected(QString serial)
     }
 
     form->videoForms.erase(serial.toStdString());
-    onRefreshBtnClick();
+    if (form->isMainForm(serial)) onRefreshBtnClick();
 }
 
 void Dialog::on_wirelessDisConnectBtn_clicked()
@@ -901,7 +906,7 @@ void Dialog::closeCurrentTab(int index)
 void Dialog::onAddButtonClick()
 {
 	static int subTabId=0;
-	auto label = QString::fromUtf8("Group %1").arg(subTabId);
+	auto label = QString::fromUtf8("Gr %1").arg(subTabId);
 	subTabId++;
 	addNewTab(label);
 }
@@ -1006,7 +1011,8 @@ void Dialog::newTabItem(QListWidget* list, bool all, QString label, QString &gro
 
 
 void Dialog::onTabBarDoubleClicked(int index) {
-    if (index==0) return;
+    if (index < 2)
+		return;
 
     QDialog dlg;
     QVBoxLayout la(&dlg);
