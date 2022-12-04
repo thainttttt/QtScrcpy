@@ -68,7 +68,7 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     ui->groupTabPhone->setTabsClosable(true);
     addNewTab(allGroup);
     addNewTab(defaultGroup);
-    enabledGroup = defaultGroup;
+    enabledGroup = allGroup;
 
     QPushButton *refreshBtn = new QPushButton(this);
 	refreshBtn->setText("Refresh");
@@ -135,12 +135,12 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
                     if (count > 3) {
                         continue;
                     }
-                    loadCount[item] = count + 1;
                     if(form->videoForms.find(item.toStdString()) == form->videoForms.end()) {
+                        loadCount[item] = count + 1;
                         ui->serialBox->setCurrentText(item);
                         on_startServerBtn_clicked();
                         break;
-                    }
+                    } else loadCount[item] = 1;
                 }
 
             } else if (args.contains("show") && args.contains("wlan0")) {
@@ -571,7 +571,7 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     newTabItem((QListWidget*) ui->groupTabPhone->widget(0), true, serial, group);
 
     // if group is enabled, show in form
-    if (group == enabledGroup) form->addForm(videoForm);
+    if (enabledGroup == group || enabledGroup == allGroup) form->addForm(videoForm);
 }
 
 void Dialog::onDeviceDisconnected(QString serial)
