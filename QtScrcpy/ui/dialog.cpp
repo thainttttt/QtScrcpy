@@ -94,7 +94,7 @@ Dialog::Dialog(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     connect(&countRefreshTimer, &QTimer::timeout, this, [this](){
         loadCount.clear();
     });
-    countRefreshTimer.start(1000);
+    countRefreshTimer.start(300000);
 
     on_useSingleModeCheck_clicked();
     on_updateDevice_clicked();
@@ -576,7 +576,10 @@ void Dialog::onDeviceConnected(bool success, const QString &serial, const QStrin
     newTabItem((QListWidget*) ui->groupTabPhone->widget(0), true, serial, group);
 
     // if group is enabled, show in form
-    if (enabledGroup == group || enabledGroup == allGroup) form->addForm(videoForm);
+    if (enabledGroup == group || enabledGroup == allGroup) {
+        qsc::IDeviceManage::getInstance().getDevice(serial)->enableGroup = true;
+        form->addForm(videoForm);
+    }
 }
 
 void Dialog::onDeviceDisconnected(QString serial)
@@ -977,7 +980,8 @@ void Dialog::onRefreshBtnClick() {
             } else {
                 auto device = qsc::IDeviceManage::getInstance().getDevice(targetLabel);
                 if (i != currentIndex) {
-                    device->enableGroup = false;
+                    // if currentIndex is allGroup ignore disable group
+                    if (currentIndex!=0) device->enableGroup = false;
                 } else {
                     form->addForm(form->videoForms[targetLabel.toStdString()]);
                     device->enableGroup = true;

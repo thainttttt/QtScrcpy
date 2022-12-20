@@ -49,6 +49,9 @@
        <height>0</height>
       </size>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="sizeAdjustPolicy">
       <enum>QAbstractScrollArea::AdjustToContents</enum>
      </property>
@@ -58,7 +61,7 @@
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>-303</x>
+        <x>0</x>
         <y>0</y>
         <width>588</width>
         <height>54</height>
@@ -79,6 +82,9 @@
        </property>
        <item>
         <widget class="QPushButton" name="screenShotBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>screen shot</string>
          </property>
@@ -89,6 +95,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="returnBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>return</string>
          </property>
@@ -99,6 +108,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="homeBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>home</string>
          </property>
@@ -109,6 +121,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="menuBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>menu</string>
          </property>
@@ -119,6 +134,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="appSwitchBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>app switch</string>
          </property>
@@ -129,6 +147,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="volumeDownBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>volume down</string>
          </property>
@@ -139,6 +160,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="volumeUpBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>volume up</string>
          </property>
@@ -149,6 +173,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="powerBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>power</string>
          </property>
@@ -159,6 +186,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="expandNotifyBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>expand notify</string>
          </property>
@@ -169,6 +199,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="fullScreenBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>full screen</string>
          </property>
@@ -179,6 +212,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="groupControlBtn">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>group control</string>
          </property>
